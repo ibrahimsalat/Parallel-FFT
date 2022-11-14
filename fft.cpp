@@ -91,6 +91,7 @@ vector<vector<double>> fft(){
 
 //The main method
 int main(){
+    cout<<"testing"<<endl;
     //vector<vector<double>> sample = {{0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0}};
     cout<< "sample before bit reversal:"<<endl;
     for (int i = 0; i<N; i++){
