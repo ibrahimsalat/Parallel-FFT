@@ -8,8 +8,7 @@ using namespace std;
 #include<math.h> 
 #include<omp.h>
 
-vector<vector<double>> sample = {{0,0},{1,0},{0,0},{-1,0},{0,0},{1,0},{0,0},{-1,0}};
-int N = sample.size();
+int N = pow(2,24);
 int stages = log2(N);
 unsigned int reverseBits(unsigned int n)
 {
@@ -31,7 +30,8 @@ unsigned int reverseBits(unsigned int n)
 int main(int argc, char** argv){
     int process_Rank, size_Of_Cluster, message_Item, offset, chunksize, leftover;
     int k,j,i;
-    int N = pow(2,15);
+    double initial_time_1, initial_time_2, initial_time_3, initial_time_4;
+    //int N = pow(2,25);
     double pi = 3.1415926535897932384626;
     vector<vector<double>> sample (N, vector<double>(2,0));
     for (int i=0; i<N; i++){
@@ -49,9 +49,10 @@ int main(int argc, char** argv){
     double twiddle_img[N/2];
     double array_real[N];
     double array_img[N];
-
+    initial_time_1 = MPI_Wtime();
     if (process_Rank == 0){
         //double pi = 3.1415926535897932384626;
+        
         double del_theta = 2*pi/N;
         double c_del = cos(del_theta);
         double s_del = sin(del_theta);
@@ -79,16 +80,17 @@ int main(int argc, char** argv){
             array_real[i]= sample[i][0];
             array_img[i]= sample[i][1];
         }
+        ;  
     }
-
+    initial_time_2 = MPI_Wtime();
     MPI_Bcast(&twiddle_real, N/2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(&twiddle_img, N/2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    
+    initial_time_3 = MPI_Wtime();
+    double para_time;
     for (k=0; k<log2(N/size_Of_Cluster); k++){//only go through the stages where the number of blocks is more than 
         int num_blks_stage_proc = chunksize/pow(2,k+1);
         int num_bf_block = pow(2,k);
-        cout<<process_Rank<<":"<<num_bf_block<<endl;
         int bf_span = pow(2,k);
         int blk_step = pow(2, k+1);
         int bf_step=  1;
@@ -125,13 +127,16 @@ int main(int argc, char** argv){
             }
 
         }
+        initial_time_4 = MPI_Wtime();
         MPI_Gather(&sub_array_real, chunksize, MPI_DOUBLE, &array_real, chunksize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
         MPI_Gather(&sub_array_img, chunksize, MPI_DOUBLE, &array_img, chunksize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        para_time += MPI_Wtime()-initial_time_4;
     }
 
 
 
     if (process_Rank == 0){
+        double initial_time_5 = MPI_Wtime();
         for (int k=log2(N/size_Of_Cluster); k<stages; k++){
             int num_blks_stage_proc= N/(pow(2,k+1));
             int num_bf_block = pow(2,k);
@@ -162,10 +167,25 @@ int main(int argc, char** argv){
                 }
             }
         }
-        for (int i = 0; i< N; i++){
-            cout<<"after last interation: "<<array_real[i]<<" "<<array_img[i]<<endl;
-        }   
+        //double initial_time_6 = MPI_Wtime();
+        //double computation_time = (initial_time_2-initial_time_1)+(initial_time_4-initial_time_3)+(initial_time_6-initial_time_5);
+        //double communication_time = (initial_time_3-initial_time_2)+para_time;
+        //double computation_time =  (initial_time_6 - initial_time_1)-communication_time;
+        //double total_time = (initial_time_6-initial_time_1);
+        //double para_time = final_para_time - initial_time;
+        //double seq_time = final_time - final_para_time;
+        //cout<<"computation time: "<< computation_time<<endl;
+        //cout<<"communication time: "<< communication_time<<endl;
+        //cout<<"total time: "<< total_time<<endl;
+
     }
+    double initial_time_6 =  MPI_Wtime();
+    double total_time = initial_time_6-initial_time_1;
+    if (process_Rank==0){
+        cout<<total_time<<endl;
+    }
+    
+
 
     MPI_Finalize();
     return 0;
