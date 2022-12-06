@@ -8,7 +8,7 @@ using namespace std;
 #include<math.h> 
 #include<omp.h>
 
-int N = pow(2,24);
+int N = pow(2,25);
 int stages = log2(N);
 unsigned int reverseBits(unsigned int n)
 {
@@ -30,7 +30,7 @@ unsigned int reverseBits(unsigned int n)
 int main(int argc, char** argv){
     int process_Rank, size_Of_Cluster, message_Item, offset, chunksize, leftover;
     int k,j,i;
-    double initial_time_1, initial_time_2, initial_time_3, initial_time_4;
+    double initial_time_1, initial_time_2, initial_time_3, initial_time_4, initial_time_5, initial_time_6, initial_time_7, initial_time_8, test_time_1;
     //int N = pow(2,25);
     double pi = 3.1415926535897932384626;
     vector<vector<double>> sample (N, vector<double>(2,0));
@@ -49,7 +49,20 @@ int main(int argc, char** argv){
     double twiddle_img[N/2];
     double array_real[N];
     double array_img[N];
+    double sub_array_real[chunksize];
+    double sub_array_img[chunksize];
+    double sub_bitrev_index[chunksize];
+    double bitrev_index[N];
+
     initial_time_1 = MPI_Wtime();
+
+    for (int i= process_Rank*chunksize; i<(process_Rank*chunksize)+chunksize; i++){
+        sub_bitrev_index[i]= reverseBits(i);
+    }
+    initial_time_7 = MPI_Wtime();
+
+    MPI_Gather(&sub_bitrev_index, chunksize, MPI_DOUBLE, &bitrev_index, chunksize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    initial_time_8 = MPI_Wtime();
     if (process_Rank == 0){
         //double pi = 3.1415926535897932384626;
         
@@ -65,27 +78,34 @@ int main(int argc, char** argv){
             twiddle_img[m] = c_del*twiddle_img[m-1] + s_del*twiddle_real[m-1];
             //cout<< tf[m][0]<<endl;
         }
-        for (int i = 0; i<N; i++){
-        sample_real[i]= sample[i][0];
-        sample_complex[i]= sample[i][1];
         
-        }
+        //for (int i = 0; i<N; i++){
+        //sample_real[i]= sample[i][0];
+        //sample_complex[i]= sample[i][1];
+        //}
+        test_time_1 = MPI_Wtime();
         for (int i=0; i<N; i++){
-            int index = reverseBits(i);
-            sample[i][0]= sample_real[index];
-            sample[i][1]= sample_complex[index];
+            int index = bitrev_index[i];
+            array_real[i]= sample[index][0];
+            array_img[i]= sample[index][1];
         }
+        test_time_1= MPI_Wtime()- test_time_1;
         //diveide the sample into real and imaginary array
-        for (int i=0;i<N;i++){
-            array_real[i]= sample[i][0];
-            array_img[i]= sample[i][1];
-        }
-        ;  
+        //for (int i=0;i<N;i++){
+        //    array_real[i]= sample[i][0];
+        //    array_img[i]= sample[i][1];
+        //}
+        
     }
     initial_time_2 = MPI_Wtime();
     MPI_Bcast(&twiddle_real, N/2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(&twiddle_img, N/2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
+
+    //scatter the data to all process
+    MPI_Scatter(&array_real, chunksize, MPI_DOUBLE, &sub_array_real,chunksize,MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Scatter(&array_img, chunksize, MPI_DOUBLE, &sub_array_img,chunksize,MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
     initial_time_3 = MPI_Wtime();
     double para_time;
     for (k=0; k<log2(N/size_Of_Cluster); k++){//only go through the stages where the number of blocks is more than 
@@ -96,11 +116,7 @@ int main(int argc, char** argv){
         int bf_step=  1;
         int twiddle_index_step = N/pow(2,k+1);
         //create a buffer to hold the chunk of real and imginary data
-        double sub_array_real[chunksize];
-        double sub_array_img[chunksize];
-        //scatter the data to all process
-        MPI_Scatter(&array_real, chunksize, MPI_DOUBLE, &sub_array_real,chunksize,MPI_DOUBLE, 0, MPI_COMM_WORLD);
-        MPI_Scatter(&array_img, chunksize, MPI_DOUBLE, &sub_array_img,chunksize,MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        
         //perform the serial fft for each block in each processor. 
         for (int m = 0; m<num_blks_stage_proc; m++){ 
             for (int n = 0; n<num_bf_block; n++){
@@ -127,16 +143,14 @@ int main(int argc, char** argv){
             }
 
         }
-        initial_time_4 = MPI_Wtime();
-        MPI_Gather(&sub_array_real, chunksize, MPI_DOUBLE, &array_real, chunksize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-        MPI_Gather(&sub_array_img, chunksize, MPI_DOUBLE, &array_img, chunksize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-        para_time += MPI_Wtime()-initial_time_4;
     }
-
-
+    MPI_Barrier(MPI_COMM_WORLD);
+    initial_time_4 = MPI_Wtime();
+    MPI_Gather(&sub_array_real, chunksize, MPI_DOUBLE, &array_real, chunksize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Gather(&sub_array_img, chunksize, MPI_DOUBLE, &array_img, chunksize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    initial_time_5 = MPI_Wtime();
 
     if (process_Rank == 0){
-        double initial_time_5 = MPI_Wtime();
         for (int k=log2(N/size_Of_Cluster); k<stages; k++){
             int num_blks_stage_proc= N/(pow(2,k+1));
             int num_bf_block = pow(2,k);
@@ -177,12 +191,24 @@ int main(int argc, char** argv){
         //cout<<"computation time: "<< computation_time<<endl;
         //cout<<"communication time: "<< communication_time<<endl;
         //cout<<"total time: "<< total_time<<endl;
-
+        initial_time_6 =  MPI_Wtime();
     }
-    double initial_time_6 =  MPI_Wtime();
+    
     double total_time = initial_time_6-initial_time_1;
+    double communication_time = (initial_time_3-initial_time_2)+(initial_time_5-initial_time_4)+(initial_time_8-initial_time_7);
+    double parallel_time = (initial_time_4-initial_time_3);
+    double serial_time = (initial_time_6-initial_time_5);
+    double set_up_time = (initial_time_7-initial_time_1)+(initial_time_2-initial_time_8);
+    double compute_time =  (initial_time_7-initial_time_1)+(initial_time_2-initial_time_8)+(initial_time_4-initial_time_3)+(initial_time_6-initial_time_5);
     if (process_Rank==0){
-        cout<<total_time<<endl;
+        cout<<"total time:          "<< total_time<<endl;
+        cout<<"communication time:  "<< communication_time<<endl;
+        cout<<"compute time:        "<<compute_time<<endl;
+        cout<<"para compute time:   "<<parallel_time<<endl;
+        cout<<"serial compute time: "<<serial_time<<endl;
+        cout<<"setup compute time:  "<<set_up_time<<endl;
+        cout<<"test time:           "<<test_time_1<<endl;
+
     }
     
 
