@@ -8,7 +8,7 @@ using namespace std;
 #include<math.h> 
 #include<omp.h>
 
-int N = pow(2,25);
+int N = pow(2,8);
 int stages = log2(N);
 unsigned int reverseBits(unsigned int n)
 {
@@ -32,28 +32,30 @@ int main(int argc, char** argv){
     int k,j,i;
     double initial_time_1, initial_time_2, initial_time_3, initial_time_4, initial_time_5, initial_time_6, initial_time_7, initial_time_8, test_time_1;
     //int N = pow(2,25);
-    double pi = 3.1415926535897932384626;
-    vector<vector<double>> sample (N, vector<double>(2,0));
+    float pi = 3.1415926535897932384626;
+    vector<vector<float>> sample (N, vector<float>(2,0));
     for (int i=0; i<N; i++){
         sample[i][0]=(sin((2*pi*i/N)));
     }
-    //vector<vector<double>> sample = {{0,0},{1,0},{0,0},{-1,0},{0,0},{1,0},{0,0},{-1,0}};
+    //vector<vector<float>> sample = {{0,0},{1,0},{0,0},{-1,0},{0,0},{1,0},{0,0},{-1,0}};
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size_Of_Cluster);
     MPI_Comm_rank(MPI_COMM_WORLD, &process_Rank);
     //int N = sample.size();
     //int wr = size_Of_Cluster-1;//number of workers
+
     chunksize = N/size_Of_Cluster; 
     int stages = log2(N);
-    double twiddle_real[N/2];
-    double twiddle_img[N/2];
-    double array_real[N];
-    double array_img[N];
-    double sub_array_real[chunksize];
-    double sub_array_img[chunksize];
-    double sub_bitrev_index[chunksize];
-    double bitrev_index[N];
-
+    float twiddle_real[N/2];
+    float twiddle_img[N/2];
+    float array_real[N];
+    float array_img[N];
+    float sub_array_real[chunksize];
+    float sub_array_img[chunksize];
+    int sub_bitrev_index[chunksize];
+    //int bitrev_index[N];
+    int *bitrev_index;
+    bitrev_index = new int[N];
     initial_time_1 = MPI_Wtime();
 
     for (int i= process_Rank*chunksize; i<(process_Rank*chunksize)+chunksize; i++){
@@ -61,53 +63,43 @@ int main(int argc, char** argv){
     }
     initial_time_7 = MPI_Wtime();
 
-    MPI_Gather(&sub_bitrev_index, chunksize, MPI_DOUBLE, &bitrev_index, chunksize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Gather(&sub_bitrev_index, chunksize, MPI_FLOAT, &bitrev_index, chunksize, MPI_FLOAT, 0, MPI_COMM_WORLD);
     initial_time_8 = MPI_Wtime();
     if (process_Rank == 0){
-        //double pi = 3.1415926535897932384626;
+        //float pi = 3.1415926535897932384626;
         
-        double del_theta = 2*pi/N;
-        double c_del = cos(del_theta);
-        double s_del = sin(del_theta);
-        double sample_real[N];
-        double sample_complex[N];
+        float del_theta = 2*pi/N;
+        float c_del = cos(del_theta);
+        float s_del = sin(del_theta);
+        
         twiddle_real[0] = 1;
         twiddle_img[0] = 0;
         for (int m =1; m<N/2; m++){ //twiddle factors
             twiddle_real[m] = c_del*twiddle_real[m-1] - s_del*twiddle_img[m-1];
             twiddle_img[m] = c_del*twiddle_img[m-1] + s_del*twiddle_real[m-1];
-            //cout<< tf[m][0]<<endl;
         }
         
-        //for (int i = 0; i<N; i++){
-        //sample_real[i]= sample[i][0];
-        //sample_complex[i]= sample[i][1];
-        //}
         test_time_1 = MPI_Wtime();
         for (int i=0; i<N; i++){
+            
             int index = bitrev_index[i];
             array_real[i]= sample[index][0];
             array_img[i]= sample[index][1];
         }
         test_time_1= MPI_Wtime()- test_time_1;
-        //diveide the sample into real and imaginary array
-        //for (int i=0;i<N;i++){
-        //    array_real[i]= sample[i][0];
-        //    array_img[i]= sample[i][1];
-        //}
-        
+        delete[] bitrev_index;
     }
+    
     initial_time_2 = MPI_Wtime();
-    MPI_Bcast(&twiddle_real, N/2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&twiddle_img, N/2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&twiddle_real, N/2, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&twiddle_img, N/2, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
 
     //scatter the data to all process
-    MPI_Scatter(&array_real, chunksize, MPI_DOUBLE, &sub_array_real,chunksize,MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Scatter(&array_img, chunksize, MPI_DOUBLE, &sub_array_img,chunksize,MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Scatter(&array_real, chunksize, MPI_FLOAT, &sub_array_real,chunksize,MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Scatter(&array_img, chunksize, MPI_FLOAT, &sub_array_img,chunksize,MPI_FLOAT, 0, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
     initial_time_3 = MPI_Wtime();
-    double para_time;
     for (k=0; k<log2(N/size_Of_Cluster); k++){//only go through the stages where the number of blocks is more than 
         int num_blks_stage_proc = chunksize/pow(2,k+1);
         int num_bf_block = pow(2,k);
@@ -123,18 +115,18 @@ int main(int argc, char** argv){
                 //cout<< "value n = "<< n<< endl;
                 int blk_pntr = m*blk_step;
                 int twiddle_index = n*twiddle_index_step;
-                double tf_real = twiddle_real[twiddle_index]; // calling the function everytime is not good 
-                double tf_img = -twiddle_img[twiddle_index]; // add the twiddle factor function 
+                float tf_real = twiddle_real[twiddle_index]; // calling the function everytime is not good 
+                float tf_img = -twiddle_img[twiddle_index]; // add the twiddle factor function 
                 int input_1 = blk_pntr + n*bf_step;
                 int input_2 = input_1 + bf_span;
-                double bf_input_1_real =  sub_array_real[input_1];
-                double bf_input_1_img =  sub_array_img[input_1];
-                double bf_input_2_real = sub_array_real[input_2]*tf_real+ sub_array_img[input_2]*(-tf_img);
-                double bf_input_2_img = sub_array_img[input_2]*tf_real - sub_array_real[input_2]*(-tf_img);
-                double bf_out_1_real = bf_input_1_real + bf_input_2_real;
-                double bf_out_1_img = bf_input_1_img + bf_input_2_img;
-                double bf_out_2_real = bf_input_1_real - bf_input_2_real;
-                double bf_out_2_img = bf_input_1_img - bf_input_2_img;
+                float bf_input_1_real =  sub_array_real[input_1];
+                float bf_input_1_img =  sub_array_img[input_1];
+                float bf_input_2_real = sub_array_real[input_2]*tf_real+ sub_array_img[input_2]*(-tf_img);
+                float bf_input_2_img = sub_array_img[input_2]*tf_real - sub_array_real[input_2]*(-tf_img);
+                float bf_out_1_real = bf_input_1_real + bf_input_2_real;
+                float bf_out_1_img = bf_input_1_img + bf_input_2_img;
+                float bf_out_2_real = bf_input_1_real - bf_input_2_real;
+                float bf_out_2_img = bf_input_1_img - bf_input_2_img;
                 sub_array_real[input_1] =  bf_out_1_real;
                 sub_array_img[input_1] =  bf_out_1_img;
                 sub_array_real[input_2] = bf_out_2_real;
@@ -146,9 +138,11 @@ int main(int argc, char** argv){
     }
     MPI_Barrier(MPI_COMM_WORLD);
     initial_time_4 = MPI_Wtime();
-    MPI_Gather(&sub_array_real, chunksize, MPI_DOUBLE, &array_real, chunksize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Gather(&sub_array_img, chunksize, MPI_DOUBLE, &array_img, chunksize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Gather(&sub_array_real, chunksize, MPI_FLOAT, &array_real, chunksize, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Gather(&sub_array_img, chunksize, MPI_FLOAT, &array_img, chunksize, MPI_FLOAT, 0, MPI_COMM_WORLD);
     initial_time_5 = MPI_Wtime();
+
+    //delete[] bitrev_index;
 
     if (process_Rank == 0){
         for (int k=log2(N/size_Of_Cluster); k<stages; k++){
@@ -162,18 +156,18 @@ int main(int argc, char** argv){
                 for (int n = 0; n<num_bf_block; n++){
                     int blk_pntr = m*blk_step;
                     int twiddle_index = n*twiddle_index_step;
-                    double tf_real = twiddle_real[twiddle_index]; // calling the function everytime is not good 
-                    double tf_img = -twiddle_img[twiddle_index]; // add the twiddle factor function 
+                    float tf_real = twiddle_real[twiddle_index]; // calling the function everytime is not good 
+                    float tf_img = -twiddle_img[twiddle_index]; // add the twiddle factor function 
                     int input_1 = blk_pntr + n*bf_step;
                     int input_2 = input_1 + bf_span;
-                    double bf_input_1_real =  array_real[input_1];
-                    double bf_input_1_img =  array_img[input_1];
-                    double bf_input_2_real = array_real[input_2]*tf_real+ array_img[input_2]*(-tf_img);
-                    double bf_input_2_img = array_img[input_2]*tf_real - array_real[input_2]*(-tf_img);
-                    double bf_out_1_real = bf_input_1_real + bf_input_2_real;
-                    double bf_out_1_img = bf_input_1_img + bf_input_2_img;
-                    double bf_out_2_real = bf_input_1_real - bf_input_2_real;
-                    double bf_out_2_img = bf_input_1_img - bf_input_2_img;
+                    float bf_input_1_real =  array_real[input_1];
+                    float bf_input_1_img =  array_img[input_1];
+                    float bf_input_2_real = array_real[input_2]*tf_real+ array_img[input_2]*(-tf_img);
+                    float bf_input_2_img = array_img[input_2]*tf_real - array_real[input_2]*(-tf_img);
+                    float bf_out_1_real = bf_input_1_real + bf_input_2_real;
+                    float bf_out_1_img = bf_input_1_img + bf_input_2_img;
+                    float bf_out_2_real = bf_input_1_real - bf_input_2_real;
+                    float bf_out_2_img = bf_input_1_img - bf_input_2_img;
                     array_real[input_1] =  bf_out_1_real;
                     array_img[input_1] =  bf_out_1_img;
                     array_real[input_2] = bf_out_2_real;
@@ -181,13 +175,13 @@ int main(int argc, char** argv){
                 }
             }
         }
-        //double initial_time_6 = MPI_Wtime();
-        //double computation_time = (initial_time_2-initial_time_1)+(initial_time_4-initial_time_3)+(initial_time_6-initial_time_5);
-        //double communication_time = (initial_time_3-initial_time_2)+para_time;
-        //double computation_time =  (initial_time_6 - initial_time_1)-communication_time;
-        //double total_time = (initial_time_6-initial_time_1);
-        //double para_time = final_para_time - initial_time;
-        //double seq_time = final_time - final_para_time;
+        //float initial_time_6 = MPI_Wtime();
+        //float computation_time = (initial_time_2-initial_time_1)+(initial_time_4-initial_time_3)+(initial_time_6-initial_time_5);
+        //float communication_time = (initial_time_3-initial_time_2)+para_time;
+        //float computation_time =  (initial_time_6 - initial_time_1)-communication_time;
+        //float total_time = (initial_time_6-initial_time_1);
+        //float para_time = final_para_time - initial_time;
+        //float seq_time = final_time - final_para_time;
         //cout<<"computation time: "<< computation_time<<endl;
         //cout<<"communication time: "<< communication_time<<endl;
         //cout<<"total time: "<< total_time<<endl;
