@@ -1,13 +1,15 @@
 #include<iostream>
+#include <bits/stdc++.h>
 #include <array>
 #include <vector>
 #include<cmath>
 #include<complex>
+#include <ctime>
 #include<math.h> 
 using namespace std;
 
-vector<vector<double>> sample = {{0,0},{1,0},{0,0},{-1,0},{0,0},{1,0},{0,0},{-1,0}};
-double N = 8.0;
+int N = pow(2,19);
+vector<vector<double>> sample (N, vector<double>(2,0));
 double pi = 3.1415926535897932384626;
 int stages = log2(N);
 vector<double> omega_cos (N/2, 0);
@@ -89,37 +91,30 @@ vector<vector<double>> fft(){
 
 //The main method
 int main(){
-    cout<< "sample before bit reversal:"<<endl;
-    for (int i = 0; i<N; i++){
-        for (int j = 0; j<2; j++){
-            cout<< sample[i][j]<< " ";
-        }
-        cout<<endl;
-    }
-    cout<<"__________"<<endl;
-    cout<< "sample after bit reversal:"<<endl;
+    for (int i=0; i<N; i++){
+        sample[i][0]=(sin((2*pi*i/N)));
+
+    }    
+    std::clock_t start;
+    double duration;
+
+    start = std::clock();
     for (int i = 0; i<N; i++){
         sample_real[i]= sample[i][0];
         sample_complex[i]= sample[i][1];
         
     }
+
     for (int i=0; i<N; i++){
         int index = reverseBits(i);
         sample[i][0]= sample_real[index];
         sample[i][1]= sample_complex[index];
-        cout<< sample[i][0]<<sample[i][1]<<endl;
-        
     }
-    cout<<"_______"<< endl;
+    
     fft();
-
-    cout<<"__________"<<endl;
-    for (int i = 0; i<N; i++){
-        for (int j = 0; j<2; j++){
-            cout<< sample[i][j]<< " ";
-        }
-        cout<<endl;
-    }
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    cout<<duration<<endl;
+    //fft();
 
     //fft();
     return 0;
