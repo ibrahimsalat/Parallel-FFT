@@ -1,0 +1,26 @@
+Intel(R) Parallel Studio XE 2020 Update 4 for Linux*
+Copyright 2009-2020 Intel Corporation.
+time taken with 25 threads:
+0.124697
+time taken with 25 threads:
+0.021816
+time taken with 25 threads:
+0.0271132
+time taken with 25 threads:
+0.046741
+time taken with 25 threads:
+0.0867081
+time taken with 25 threads:
+0.18213
+time taken with 25 threads:
+0.451174
+time taken with 25 threads:
+0.840278
+time taken with 25 threads:
+1.83493
+time taken with 25 threads:
+3.53459
+time taken with 25 threads:
+8.07801
+time taken with 25 threads:
+15.2244

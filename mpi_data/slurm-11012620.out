@@ -1,0 +1,100 @@
+Intel(R) Parallel Studio XE 2020 Update 4 for Linux*
+Copyright 2009-2020 Intel Corporation.
+32 proceses with 15 stages
+total time:          0.0646306
+communication time:  0.0641279
+compute time:        0.000502639
+para compute time:   8.36812e-05
+serial compute time: 0.000136189
+setup compute time:  0.000282768
+test time:           0.000196937
+32 proceses with 16 stages
+total time:          0.141192
+communication time:  0.140119
+compute time:        0.0010729
+para compute time:   0.000129048
+serial compute time: 0.000334773
+setup compute time:  0.000609078
+test time:           0.0003778
+32 proceses with 17 stages
+total time:          0.549734
+communication time:  0.547451
+compute time:        0.00228243
+para compute time:   0.000198767
+serial compute time: 0.000735663
+setup compute time:  0.001348
+test time:           0.000822939
+32 proceses with 18 stages
+total time:          0.584729
+communication time:  0.390787
+compute time:        0.193943
+para compute time:   0.190296
+serial compute time: 0.00163445
+setup compute time:  0.00201219
+test time:           0.000917889
+32 proceses with 19 stages
+total time:          0.0240279
+communication time:  0.0157706
+compute time:        0.00825725
+para compute time:   0.00116716
+serial compute time: 0.00304522
+setup compute time:  0.00404488
+test time:           0.0015098
+32 proceses with 20 stages
+total time:          0.386457
+communication time:  0.359716
+compute time:        0.0267408
+para compute time:   0.0123632
+serial compute time: 0.00626506
+setup compute time:  0.00811252
+test time:           0.00347891
+32 proceses with 21 stages
+total time:          0.100736
+communication time:  0.0592993
+compute time:        0.0414372
+para compute time:   0.0112162
+serial compute time: 0.0128923
+setup compute time:  0.0173287
+test time:           0.00850376
+32 proceses with 22 stages
+total time:          0.123924
+communication time:  0.040442
+compute time:        0.083482
+para compute time:   0.0160991
+serial compute time: 0.0337828
+setup compute time:  0.0336001
+test time:           0.0155821
+32 proceses with 23 stages
+total time:          0.798171
+communication time:  0.509074
+compute time:        0.289098
+para compute time:   0.125808
+serial compute time: 0.0958744
+setup compute time:  0.0674149
+test time:           0.0324258
+32 proceses with 24 stages
+total time:          0.792095
+communication time:  0.279583
+compute time:        0.512512
+para compute time:   0.141276
+serial compute time: 0.236318
+setup compute time:  0.134918
+test time:           0.0644641
+32 proceses with 25 stages
+total time:          1.65852
+communication time:  0.322799
+compute time:        1.33572
+para compute time:   0.296388
+serial compute time: 0.481498
+setup compute time:  0.557839
+test time:           0.416326
+32 proceses with 26 stages
+srun: Job 11012620 step creation temporarily disabled, retrying (Requested nodes are busy)
+srun: Step created for job 11012620
+total time:          7.85299
+communication time:  4.78442
+compute time:        3.06857
+para compute time:   1.06369
+serial compute time: 1.2122
+setup compute time:  0.792687
+test time:           0.450995

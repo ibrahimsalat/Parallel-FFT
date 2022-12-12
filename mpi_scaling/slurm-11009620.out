@@ -1,0 +1,98 @@
+Intel(R) Parallel Studio XE 2020 Update 4 for Linux*
+Copyright 2009-2020 Intel Corporation.
+4 proceses with 15 stages
+total time:          0.0569982
+communication time:  0.036372
+compute time:        0.0206261
+para compute time:   0.0200415
+serial compute time: 4.40739e-05
+setup compute time:  0.00054054
+test time:           0.000338737
+4 proceses with 16 stages
+total time:          0.0460434
+communication time:  0.0444014
+compute time:        0.00164201
+para compute time:   0.0004237
+serial compute time: 9.02899e-05
+setup compute time:  0.00112802
+test time:           0.000662066
+4 proceses with 17 stages
+total time:          0.00553645
+communication time:  0.00189145
+compute time:        0.003645
+para compute time:   0.00107024
+serial compute time: 0.000185978
+setup compute time:  0.00238878
+test time:           0.00135628
+4 proceses with 18 stages
+total time:          0.0516839
+communication time:  0.0443809
+compute time:        0.00730299
+para compute time:   0.00232125
+serial compute time: 0.000335529
+setup compute time:  0.00464621
+test time:           0.00219981
+4 proceses with 19 stages
+total time:          0.0624961
+communication time:  0.0478675
+compute time:        0.0146286
+para compute time:   0.00501276
+serial compute time: 0.000693638
+setup compute time:  0.00892225
+test time:           0.00425029
+4 proceses with 20 stages
+total time:          0.0381183
+communication time:  0.00798302
+compute time:        0.0301353
+para compute time:   0.0109079
+serial compute time: 0.00144802
+setup compute time:  0.0177793
+test time:           0.00876494
+4 proceses with 21 stages
+total time:          0.0776535
+communication time:  0.0151896
+compute time:        0.0624639
+para compute time:   0.0231554
+serial compute time: 0.00365068
+setup compute time:  0.0356578
+test time:           0.0173434
+4 proceses with 22 stages
+total time:          0.193861
+communication time:  0.0523337
+compute time:        0.141527
+para compute time:   0.057412
+serial compute time: 0.0101478
+setup compute time:  0.0739677
+test time:           0.0367061
+4 proceses with 23 stages
+total time:          0.432747
+communication time:  0.105671
+compute time:        0.327076
+para compute time:   0.152167
+serial compute time: 0.0227433
+setup compute time:  0.152166
+test time:           0.0757682
+4 proceses with 24 stages
+total time:          1.10442
+communication time:  0.127902
+compute time:        0.976517
+para compute time:   0.627257
+serial compute time: 0.0455729
+setup compute time:  0.303687
+test time:           0.146986
+4 proceses with 25 stages
+total time:          2.2909
+communication time:  0.207539
+compute time:        2.08336
+para compute time:   1.37818
+serial compute time: 0.0897873
+setup compute time:  0.615392
+test time:           0.293238
+4 proceses with 26 stages
+total time:          4.82521
+communication time:  0.397311
+compute time:        4.4279
+para compute time:   2.99651
+serial compute time: 0.180205
+setup compute time:  1.25119
+test time:           0.58993

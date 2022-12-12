@@ -6,11 +6,30 @@
 #include<complex>
 #include <ctime>
 #include<math.h> 
-#include <chrono>
 using namespace std;
-/*The bit Reversed function that calculates the bit reversed number of a given number n*/
-unsigned int reverseBits(unsigned int n, int stages)
+
+//int N = pow(2,stages);
+/*
+vector<vector<double>> sample (N, vector<double>(2,0));
+double pi = 3.1415926535897932384626;
+int stages = log2(N);
+vector<double> omega_cos (N/2, 0);
+vector<double> omega_sin (N/2, 0);
+vector<double> c (N/2, 0);
+vector<double> s (N/2, 0);
+vector<double> k (stages, 0);
+vector<double> sample_real (N, 0);
+vector<double> sample_complex (N, 0);
+vector<vector<double>> tf (N/2, vector<double>(2,0));
+vector<vector<double>> w_index (N, vector<double>(stages,0));
+*/
+
+
+
+
+unsigned int reverseBits(unsigned int n, int N)
 {
+    int stages = log2(N);
 	unsigned int rev = 0;
 
 	for (int i=0; i<stages; i++){
@@ -22,18 +41,20 @@ unsigned int reverseBits(unsigned int n, int stages)
 
     }
 
+	// required number
 	return rev;
 }
-/*The main Cooley-Turkey FFT that takes an input sample and outputs the FFT of the sample*/
-vector<vector<double>> fft(int stages, vector<vector<double>> sample){
-    /*Initialization of constansts and arrays*/
-    int N = pow(2,stages);
+
+vector<vector<double>> fft(int N){
+    //int N;
     double pi = 3.1415926535897932384626;
+    vector<vector<double>> sample (N, vector<double>(2,0));
+    int stages = log2(N);
     vector<double> omega_cos (N/2, 0);
     vector<double> omega_sin (N/2, 0);
     vector<vector<double>> tf (N/2, vector<double>(2,0));
+    vector<vector<double>> w_index (N, vector<double>(stages,0));
     
-    /*calculates the twiddle factors and stores them in arrays of real and imaginary*/
     double del_theta = 2*pi/N;
     double c_del = cos(del_theta);
     double s_del = sin(del_theta);
@@ -44,23 +65,27 @@ vector<vector<double>> fft(int stages, vector<vector<double>> sample){
         tf[m][1] = c_del*tf[m-1][1] + s_del*tf[m-1][0];
         //cout<< tf[m][0]<<endl;
     }
-
-    for (int k=0; k<stages; k++){//loops for stages 
-        /*calculation of FFT parameters*/
+    
+    for (int k=0; k<stages; k++){
         int num_blks_stages= N/(pow(2,k+1));
         int num_bf_block = pow(2,k);
         int bf_span = pow(2,k);
         int blk_step = pow(2, k+1);
         int bf_step=  1;
         int twiddle_index_step = N/pow(2,k+1);
-        for (int m = 0; m<num_blks_stages; m++){//loops over blocks in a stage
+        
+        for (int m = 0; m<num_blks_stages; m++){
+            //cout<< "value m = "<< m<< endl;
+            
             int blk_pntr = m*blk_step;
-            for (int n = 0; n<num_bf_block; n++){//loops over butterfly per block
+            for (int n = 0; n<num_bf_block; n++){
+                //cout<< "value n = "<< n<< endl;
                 int twiddle_index = n*twiddle_index_step;
-                double tf_real = tf[twiddle_index][0]; 
+                double tf_real = tf[twiddle_index][0]; // calling the function everytime is not good 
                 double tf_img = -tf[twiddle_index][1]; // add the twiddle factor function 
                 double input_1 = blk_pntr + n*bf_step;
                 double input_2 = input_1 + bf_span;
+                
                 double bf_input_1_real =  sample[input_1][0];
                 double bf_input_1_img =  sample[input_1][1];
                 double bf_input_2_real = sample[input_2][0]*tf_real+ sample[input_2][1]*(-tf_img);
@@ -75,42 +100,52 @@ vector<vector<double>> fft(int stages, vector<vector<double>> sample){
                 sample[input_2][1] = bf_out_2_img;
             }
         }
+        
     }
     return sample;
 }
 
 //The main method
-int main(int argc, char *argv[]){
-    int stages = atoi(argv[1]);
-    double pi = 3.1415926535897932384626;
-    int N = pow(2,stages);
+int main(int argc, char** argv){
+    if (argc != 2){
+        cout<<"this is an error"<<endl;
+        return 0;
+    }
+    
+    int N = atoi(argv[1]);
     vector<vector<double>> sample (N, vector<double>(2,0));
+    double pi = 3.1415926535897932384626;
     vector<double> sample_real (N, 0);
     vector<double> sample_complex (N, 0);
-
     for (int i=0; i<N; i++){
         sample[i][0]=(sin((2*pi*i/N)));
+        cout<<sample[i][0]<<endl;
 
     }    
+    cout<<"tha value of N "<<N<<endl;
+    std::clock_t start;
+    double duration;
 
-    auto start = std::chrono::high_resolution_clock::now();
+    start = std::clock();
     for (int i = 0; i<N; i++){
         sample_real[i]= sample[i][0];
         sample_complex[i]= sample[i][1];
         
     }
-    /*prepares the sample in a bit reversed order*/
+
     for (int i=0; i<N; i++){
-        int index = reverseBits(i,stages);
+        int index = reverseBits(i,N);
         sample[i][0]= sample_real[index];
         sample[i][1]= sample_complex[index];
     }
-
-    fft(stages, sample);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    cout<<stages<<"stages"<<endl;
-    std::cout << "Elapsed time: " << elapsed.count() << " seconds" << std::endl;
-
+    
+    fft(N);
+    cout<<"im here"<<endl;
+    for (int i = 0; i<N; i++){
+        cout<<sample[i][0]<<sample[i][1]<<endl;
+    }
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    cout<<duration<<endl;
+    //fft();
     return 0;
 }

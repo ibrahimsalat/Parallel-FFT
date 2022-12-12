@@ -1,0 +1,10 @@
+Intel(R) Parallel Studio XE 2020 Update 4 for Linux*
+Copyright 2009-2020 Intel Corporation.
+64 proceses with 28 stages
+total time:          4.82552
+communication time:  1.77496
+compute time:        3.05056
+para compute time:   0.437704
+serial compute time: 2.08077
+setup compute time:  0.532082
+test time:           0.274829
